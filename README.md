@@ -1,4 +1,6 @@
-# Mirror of TERN's Airflow container image
+# TERN's multi-arch Airflow container image
+
+This repository provides container images for `linux/amd64` and `linux/arm64`.
 
 This repository automatically checks the upstream Bitbucket repository for changes in the `master` branch. If there are changes, it will build a new container image and push it to the GitHub Container Registry and Docker Hub.
 
@@ -14,6 +16,8 @@ This image support for `linux/amd64` and `linux/arm64` with the following tags:
 
 ### [docker.io/ternaustralia/airflow](https://hub.docker.com/repository/docker/ternau/airflow)
 
+Note: _Not implemented yet_.
+
 This image by default only supports `linux/amd64`. However, this repository provides `linux/arm64` support with the following tags:
 
 - `latest-arm64`
@@ -27,7 +31,7 @@ Prior to running any workflows with `act`, you will need to create a `.env` file
 
 Note: this will change the state of the `main` branch by updating [`CURRENT_COMMIT_HASH`](CURRENT_COMMIT_HASH) file if the latest upstream commit hash is different.
 
-### Build multi arch container image
+### Build-multi arch container image
 
 ```
 act --secret-file .env --env GITHUB_REPOSITORY=edmondchuc/mirror-tern-docker-airflow workflow_dispatch
