@@ -2,7 +2,7 @@
 
 This repository provides container images for `linux/amd64` and `linux/arm64`.
 
-This repository automatically checks the upstream Bitbucket repository for changes in the `master` branch. If there are changes, it will build a new container image and push it to the GitHub Container Registry and Docker Hub. The upstream private Bitbucket repository is https://bitbucket.org/terndatateam/docker-airflow/src/master/. 
+This repository automatically checks the upstream Bitbucket repository for changes in the `master` branch. If there are changes, it will build a new container image and push it to the GitHub Container Registry and Docker Hub. The upstream private Bitbucket repository is https://bitbucket.org/terndatateam/docker-airflow/src/master/.
 
 ## Container images
 
@@ -15,8 +15,6 @@ This image support for `linux/amd64` and `linux/arm64` with the following tags:
 - `major.minor.patch-build.<git-short-hash>` - e.g. `2.1.4-build.c584b88`
 
 ### [docker.io/ternaustralia/airflow](https://hub.docker.com/repository/docker/ternau/airflow)
-
-Note: _Not implemented yet_.
 
 This image by default only supports `linux/amd64`. However, this repository provides `linux/arm64` support with the following tags:
 
