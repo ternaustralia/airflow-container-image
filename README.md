@@ -2,7 +2,7 @@
 
 This repository provides container images for `linux/amd64` and `linux/arm64`.
 
-This repository automatically checks the upstream Bitbucket repository for changes in the `master` branch. If there are changes, it will build a new container image and push it to the GitHub Container Registry and Docker Hub.
+This repository automatically checks the upstream Bitbucket repository for changes in the `master` branch. If there are changes, it will build a new container image and push it to the GitHub Container Registry and Docker Hub. The upstream private Bitbucket repository is https://bitbucket.org/terndatateam/docker-airflow/src/master/. 
 
 ## Container images
 
