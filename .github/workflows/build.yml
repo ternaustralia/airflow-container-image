@@ -1,0 +1,101 @@
+name: Build container image
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+env:
+  BRANCH_NAME: master
+  IMAGE_NAME: ghcr.io/ternaustralia/airflow
+  
+  # Don't perform git prompt .
+  # This will prevent `act` from hanging when running locally with a git error.
+  # See https://github.com/nektos/act/issues/977#issuecomment-1037608650 for more information.
+  GIT_TERMINAL_PROMPT: "0"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v3
+
+      - name: Setup git
+        run: |
+          git config --global user.name github-actions
+          git config --global user.email github-actions@github.com
+          git remote set-url origin https://${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git
+      - name: Set current commit hash environment variable
+        id: commit-hash
+        run: echo "CURRENT_COMMIT_HASH=$(cat CURRENT_COMMIT_HASH)" >> $GITHUB_ENV
+
+      - name: Fetch upstream
+        run: |
+          git remote add --mirror=fetch upstream https://${{ secrets.BITBUCKET_USERNAME }}:${{ secrets.BITBUCKET_APP_PASSWORD }}@bitbucket.org/terndatateam/docker-airflow.git
+          git fetch upstream
+          git checkout ${{ env.BRANCH_NAME }}
+      - name: Set upstream commit hash
+        run: |
+          echo "UPSTREAM_COMMIT_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "UPSTREAM_SHORT_COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Echo current and upstream commit hash
+        run: |
+          echo '::echo::on'
+          echo "Current commit hash: $CURRENT_COMMIT_HASH Upstream commit hash: $UPSTREAM_COMMIT_HASH"
+          echo '::echo::off'
+      - name: Update commit hash
+        if: ${{ env.CURRENT_COMMIT_HASH != env.UPSTREAM_COMMIT_HASH }}
+        run: |
+          echo '::echo::on'
+          echo "Current commit hash: $CURRENT_COMMIT_HASH Upstream commit hash: $UPSTREAM_COMMIT_HASH"
+          git checkout main
+          rm CURRENT_COMMIT_HASH
+          echo $UPSTREAM_COMMIT_HASH >> CURRENT_COMMIT_HASH
+          git add CURRENT_COMMIT_HASH
+          git commit -m "Update CURRENT_COMMIT_HASH value"
+          git push
+          echo "CURRENT_COMMIT_HASH has been updated to $(cat CURRENT_COMMIT_HASH)"
+          echo '::echo::off'
+      - name: Change to upstream branch
+        if: ${{ env.CURRENT_COMMIT_HASH != env.UPSTREAM_COMMIT_HASH }}
+        run: git checkout ${{ env.BRANCH_NAME }}
+
+      - name: Build local image
+        if: ${{ env.CURRENT_COMMIT_HASH != env.UPSTREAM_COMMIT_HASH }}
+        run: docker build -t local-image .
+
+      - name: Get Airflow version
+        if: ${{ env.CURRENT_COMMIT_HASH != env.UPSTREAM_COMMIT_HASH }}
+        id: airflow-version
+        run: echo "::set-output name=VERSION::$(docker run --rm --entrypoint=/bin/bash local-image -c 'airflow version')"
+
+      - name: Echo Airflow version
+        if: ${{ env.CURRENT_COMMIT_HASH != env.UPSTREAM_COMMIT_HASH }}
+        run: |
+          echo '::echo::on'
+          echo "Airflow version is ${{ steps.airflow-version.outputs.VERSION }}"
+      - name: Set up QEMU
+        if: ${{ env.CURRENT_COMMIT_HASH != env.UPSTREAM_COMMIT_HASH }}
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up and use Docker Buildx
+        if: ${{ env.CURRENT_COMMIT_HASH != env.UPSTREAM_COMMIT_HASH }}
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to GitHub Container Registry
+        if: ${{ env.CURRENT_COMMIT_HASH != env.UPSTREAM_COMMIT_HASH }}
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build container image and push
+        if: ${{ env.CURRENT_COMMIT_HASH != env.UPSTREAM_COMMIT_HASH }}
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ env.IMAGE_NAME }}:latest,${{ env.IMAGE_NAME }}:${{ steps.airflow-version.outputs.VERSION }},${{ env.IMAGE_NAME }}:${{ steps.airflow-version.outputs.VERSION }}-build.${{ env.UPSTREAM_SHORT_COMMIT_HASH }}
