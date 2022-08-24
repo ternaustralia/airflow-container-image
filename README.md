@@ -6,7 +6,7 @@ This repository automatically checks the upstream Bitbucket repository for chang
 
 ## Container images
 
-### [ghcr.io/ternaustralia/airflow](https://github.com/ternaustralia/mirror-docker-airflow/pkgs/container/airflow)
+### [ghcr.io/ternaustralia/airflow](https://github.com/ternaustralia/airflow-container-image/pkgs/container/airflow)
 
 This image support for `linux/amd64` and `linux/arm64` with the following tags:
 
