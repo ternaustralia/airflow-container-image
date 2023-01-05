@@ -32,7 +32,7 @@ Note: this will change the state of the `main` branch by updating [`CURRENT_COMM
 ### Build-multi arch container image
 
 ```
-act --secret-file .env --env GITHUB_REPOSITORY=edmondchuc/mirror-tern-docker-airflow workflow_dispatch
+act --secret-file .env --env GITHUB_REPOSITORY=ternaustralia/airflow-container-image
 ```
 
 _Note: running the build workflow with `act` will fail on the last step where it builds and pushes to the GitHub Container Registry. The reason it fails is because we do not provide it with the values for `github.actor` to correctly authenticate with the registry. This is not a problem as we are only interested in seeing that building the container image succeeds._
